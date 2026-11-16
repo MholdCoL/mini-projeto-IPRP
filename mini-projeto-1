@@ -105,7 +105,7 @@ def top_n(freqs, n):
 
 # 2.1
 def construir_bigramas(tokens):
-    modelo = {}
+    modelo = {} # dicionário para armazenar o modelo de bigramas
 
     for i in range(len(tokens) - 1):
         atual = tokens[i]
@@ -205,16 +205,16 @@ def main():
     print("Tokens: ", len(tokens)) # numero de tokens
 
 #1.3
-    frequencias = contar_frequencias(tokens)
+    frequencias = contar_frequencias(tokens) # conta a frequência de cada token
     print("Frequencias: ", frequencias)
 #1.4
     print("Top 5: ", top_n(frequencias, 5))
 #2.1
-    modelo = construir_bigramas(tokens)
+    modelo = construir_bigramas(tokens) # constrói o modelo de bigramas
     print("Modelo: ", modelo)
 #2.2
-    prob = probabilidade(modelo, "amor", "de")
-    print("Probabilidade de 'amor' seguido de 'de': ", prob)
+    prob = probabilidade(modelo, "o", "mar") # calcula a probabilidade de "o" seguido de "mar"
+    print("Probabilidade de 'o' seguido de 'mar': ", prob)
 #2.3
     contador = 0   
 #2.4
