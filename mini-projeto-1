@@ -1,0 +1,227 @@
+import math
+import random
+FIM = (".", "!", "?")
+
+#1.1 a) funcao ler_linhas(nome)
+def ler_linhas(nome):
+    linhas = [] #lista de linhas
+    with open(nome, 'r', encoding = 'utf-8') as f: #abrir ficheiro com codificacao utf-8
+        for linha in f:
+            if linha[-1] == "\n": #se na linha, o ultimo elemento ser \n
+                linha = linha[:-1] #obtem todos os caracteres exceto o ultimo
+            linhas.append(linha)
+
+    return linhas
+
+
+#1.1 b)
+def extrair_corpo(linhas):
+    inicio = 0
+    fim = len(linhas)
+
+    for i in range(len(linhas)):
+        if linhas[i][:12] == "*** START OF":
+            inicio=i+1 #começar na linha seguinte do marcador
+
+        if linhas[i][:10] == "*** END OF":
+            fim=i
+
+    return linhas[inicio:fim]
+
+    
+# 1.1 c)
+def contar_linhas(corpo):
+    numero_linhas = len(corpo) #corpo é uma lista em que cada elemente corresponde a uma linha do texto
+    print("Número de linhas:", numero_linhas)
+
+def contar_caracteres(corpo):
+    numero_caracteres = 0
+
+    for linha in corpo:
+        numero_caracteres += len(linha)
+
+    print("Número de caracteres:", numero_caracteres)
+
+
+# 1.2
+def tokenizar(texto):
+    texto = texto.lower() # texto convertido para minusculas
+    palavra = "" # sequencia de letras para depois construir uma palavra
+    tokens = [] #lista vazia , para depois guardar as palavras 
+
+    for i in range(len(texto)): # percorre o texto 1 caracter de cada vez
+        caracter = texto[i] # guarda caracter na posicao i
+
+        if caracter.isalpha(): #se caracter for string
+            palavra = palavra + caracter #juntas caracteres para formar palavra
+
+        elif caracter == "-" or caracter == "'": #se caracter for hifen ou apostrofo
+            if i > 0 and (i < len(texto) - 1): # verifica se existe caracter antes e depois
+                # ex: disse-lhe
+                if texto[i-1].isalpha() and texto[i+1].isalpha(): # se o caracter antes e depois forem letars
+                    palavra = palavra + caracter #juntar o simbolo à palavra
+
+                else:
+                    if palavra != "": #se palavra nao for vazia
+                        tokens.append(palavra) #adiciona para a lista token
+                        palavra = "" # deixar vazia, se nao a proxima palavra seria acrescentada 
+            else:
+                if palavra != "": #se palavra nao for vazia
+                    tokens.append(palavra) #adiciona para a lista token
+                    palavra = "" # deixar vazia, se nao a proxima palavra seria acrescentada 
+
+        else: # se o caracter nao for letra, hifen ou apostrofo
+            if palavra != "": #se a palavra nao for vazia
+                tokens.append(palavra) 
+                palavra="" 
+
+            if caracter == "." or caracter == "!" or caracter == "?": #se for pontuacao
+                if i == 0 or texto[i-1] not in ".!?": # se for o primeiro caracter ou a anterior nao for pontuacao
+                    tokens.append(caracter) #adiciona a pontuacao a lista
+
+    if palavra != "": # se ainda existir uma palavra depois do ciclo
+        tokens.append(palavra)
+
+    return tokens
+
+
+# 1.3
+def contar_frequencias(tokens):
+    frequencias = {}
+
+    for token in tokens: # lista de tokens 1 de cada vez
+        if token in frequencias: # se token já existir no dicionario, ou seja se vai repetir
+            frequencias[token] += 1 # aumenta em 1
+        else:
+            frequencias[token] = 1 # se é a primeira vez a receber entao adiciona 1
+
+    return frequencias 
+
+# 1.4
+def top_n(freqs, n):
+    lista = list(freqs.items()) # transforma dicionario em lista de tuplos (token, frequencia)
+    lista.sort(key=lambda x: x[1], reverse=True) # ordena a lista com base na frequencia (x[1]) do maior para o menor
+    return lista[:n] # devolve os n primeiros elementos da lista
+
+# 2.1
+def construir_bigramas(tokens):
+    modelo = {}
+
+    for i in range(len(tokens) - 1):
+        atual = tokens[i]
+        seguinte = tokens[i+1]
+
+        if atual not in modelo:
+            modelo[atual] = {}
+
+        if seguinte not in modelo[atual]:
+            modelo[atual][seguinte] = 0
+
+        modelo[atual][seguinte] += 1
+
+    return modelo
+
+# 2.2
+def probabilidade(modelo, a, b):
+    if a not in modelo:
+        return 0.0
+    if b not in modelo[a]:
+        return 0.0
+    return modelo[a][b] / sum(modelo[a].values())
+
+# 2.3
+def escolher_proxima(sucessores):
+    total = sum(sucessores.values())
+    if total == 0:
+        return None
+
+    r = random.randint(1, total)
+    acumulado = 0.0
+
+    for palavra, frequencia in sucessores.items():
+        acumulado += frequencia
+        if acumulado >= r:
+            return palavra
+
+    return None
+
+# 2.4
+def gerar_frase(modelo, max_tokens=30):
+    frase = []
+    token_atual = escolher_proxima(modelo["."])
+
+    while token_atual is not None and len(frase) < max_tokens:
+        frase.append(token_atual)
+        if token_atual in FIM:
+            break
+        token_atual = escolher_proxima(modelo.get(token_atual, {}))
+
+    return frase
+
+# 2.5 a)
+def formatar(tokens):
+    frase = ""
+    maiuscula = True
+
+    for token in tokens:
+        if token in FIM:
+            frase += token + " "
+            maiuscula = True
+        else:
+            if maiuscula:
+                frase += token.capitalize() + " "
+                maiuscula = False
+            else:
+                frase += token + " "
+
+    return frase.strip()
+
+# 2.5 b)
+def gerar_texto(modelo, n_frases):
+    texto = []
+
+    for _ in range(n_frases):
+        frase_tokens = gerar_frase(modelo)
+        frase_formatada = formatar(frase_tokens)
+        texto.append(frase_formatada)
+
+    return " ".join(texto)
+
+#main
+def main():
+#1.1 a)
+    linhas = ler_linhas("amor_de_perdicao.txt")
+
+#1.1 b)
+    corpo = extrair_corpo(linhas)
+
+#1.1 c)
+    contar_linhas(corpo)
+    contar_caracteres(corpo)
+
+#1.2
+    texto = " ".join(corpo) #junta linhas numa unica string
+    tokens = tokenizar(texto) #transforma texto em lista de tokens
+    print("Tokens: ", len(tokens)) # numero de tokens
+
+#1.3
+    frequencias = contar_frequencias(tokens)
+    print("Frequencias: ", frequencias)
+#1.4
+    print("Top 5: ", top_n(frequencias, 5))
+#2.1
+    modelo = construir_bigramas(tokens)
+    print("Modelo: ", modelo)
+#2.2
+    prob = probabilidade(modelo, "amor", "de")
+    print("Probabilidade de 'amor' seguido de 'de': ", prob)
+#2.3
+    contador = 0   
+#2.4
+    frase = gerar_frase(modelo)
+    print("Frase gerada: ", frase)
+#2.5
+    texto_gerado = gerar_texto(modelo, 3)
+    print("Texto gerado: ", texto_gerado)
+
+main()
