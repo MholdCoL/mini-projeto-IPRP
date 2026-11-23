@@ -1,3 +1,12 @@
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Introdução à Programação e Resolução de Problemas
+# Mini - Projeto : Um Modelo de Linguagem Probabilístico
+#
+# Grupo :
+# N ú mero de estudante do aluno 1
+# 2026117590
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 import math
 import random
 FIM = (".", "!", "?")
